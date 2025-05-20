@@ -2,11 +2,14 @@ import { createBrowserRouter } from "react-router-dom";
 import ErrorPage from "../pages/ErrorPage";
 import Home from "../pages/Home";
 import RootLayout from "../layout/RootLayout";
-import Explore from "../pages/Explore";
 import HowWorks from "../pages/HowWorks";
 import Profile from "../pages/Profile";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
+import Categories from "../pages/Categories";
+import Freelancer from "../pages/Freelancer";
+import FreelancerDetail from "../pages/FreelancerDetail";
+import Messages from "../pages/Messages";
 
 export const router = createBrowserRouter([
   {
@@ -27,8 +30,16 @@ export const router = createBrowserRouter([
         element: <Home />,
       },
       {
-        path: "explore",
-        element: <Explore />,
+        path: "freelancer",
+        element: <Freelancer />,
+      },
+      {
+        path: "categories",
+        element: <Categories />,
+      },
+      {
+        path: "freelancer/:id",
+        element: <FreelancerDetail />,
       },
       {
         path: "how-it-works",
@@ -37,6 +48,10 @@ export const router = createBrowserRouter([
       {
         path: "profile",
         element: <Profile />,
+      },
+      {
+        path: "messages",
+        element: <Messages />,
       },
     ],
   },
