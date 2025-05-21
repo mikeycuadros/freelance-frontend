@@ -84,11 +84,11 @@ const Navbar = () => {
                 </span>
               </Link>
             )}
-            <Link to="/publish">
+            {/* <Link to="/publish">
               <Button className="bg-purple-800 hover:bg-purple-900 text-white px-4 py-2 rounded-md">
                 Publicar Servicio
               </Button>
-            </Link>
+            </Link> */}
           </div>
         ) : (
           <div className="flex items-center space-x-4">

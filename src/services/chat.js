@@ -1,7 +1,7 @@
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 export async function getUserChats() {
-  const res = await fetch(`${BASE_URL}/chat`, {
+  const res = await fetch(`${BASE_URL}/chats`, {
     headers: {
       "Authorization": `Bearer ${localStorage.getItem("token")}`
     }
@@ -11,7 +11,7 @@ export async function getUserChats() {
 }
 
 export async function getChatMessages(chatId) {
-  const res = await fetch(`${BASE_URL}/chat/${chatId}/messages`, {
+  const res = await fetch(`${BASE_URL}/chats/${chatId}/messages`, {
     headers: {
       "Authorization": `Bearer ${localStorage.getItem("token")}`
     }
@@ -21,7 +21,7 @@ export async function getChatMessages(chatId) {
 }
 
 export async function sendMessageToChat(chatId, content) {
-  const res = await fetch(`${BASE_URL}/chat/${chatId}/messages`, {
+  const res = await fetch(`${BASE_URL}/chats/${chatId}/messages`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

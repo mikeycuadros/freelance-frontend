@@ -27,9 +27,10 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
       if (response.ok) {
         setToken(data.token);
+        setUser(data.user);
         setIsAuthenticated(true);
-        // Store user data in localStorage
         localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
       }
       return data;
     } catch (error) {

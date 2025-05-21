@@ -3,17 +3,17 @@ import ServiceCard from "../components/ServiceCard";
 import CategoryCard from "../components/CategoryCard";
 import { Button } from "../components/Button";
 import { Link } from "react-router-dom";
-import { getAllServices } from "../services/service";
+// import { getAllServices } from "../services/service";
 import { getAllCategories } from "../services/category";
 import { useFetch } from "../hooks/useFetch";
 import CategoryIcon from "../components/CategoryIcon";
 
 const Home = () => {
-  const {
-    data: services,
-    loading: loadingServices,
-    error: errorServices,
-  } = useFetch(() => getAllServices(), []);
+  // const {
+  //   data: services,
+  //   loading: loadingServices,
+  //   error: errorServices,
+  // } = useFetch(() => getAllServices(), []);
   const {
     data: categories,
     loading: loadingCategories,
@@ -155,7 +155,7 @@ const Home = () => {
       </section>
 
       {/* Servicios populares */}
-      <section className="py-10 px-4 bg-gray-50">
+      {/* <section className="py-10 px-4 bg-gray-50">
         <h3 className="text-2xl font-semibold mb-6 text-center">
           Servicios populares
         </h3>
@@ -170,7 +170,7 @@ const Home = () => {
             ))
           )}
         </div>
-      </section>
+      </section> */}
 
       {/* CTA final */}
       <section className="text-center py-16">

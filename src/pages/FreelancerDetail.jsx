@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { Button } from "../components/Button";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { getFreelancerById } from "../services/freelancer";
 
 const FreelancerDetail = () => {
   const { id } = useParams();
@@ -13,79 +14,65 @@ const FreelancerDetail = () => {
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("about");
 
+  const handleContactClick = () => {
+    if (!isAuthenticated) {
+      navigate("/login", { state: { from: `/freelancer/${id}` } });
+    } else {
+      // Lógica para contactar al freelancer
+      console.log("Contactando al freelancer:", id);
+    }
+  };
+
   useEffect(() => {
     const fetchPersonData = async () => {
       setLoading(true);
       try {
-        // Aquí deberías hacer una llamada a tu API para obtener los datos de la persona
-        // Por ahora, usaré datos de ejemplo
-        const mockPerson = {
-          id: id,
-          name: "Alex Johnson",
-          title: "Full Stack Developer",
-          email: "contact@alexjohnsondesign.com",
-          phone: "Available after contact",
-          location: "San Francisco, CA",
-          rating: 4.9,
-          reviews: 124,
-          successRate: 98,
-          hourlyRate: 85,
-          skills: ["React", "Node.js", "TypeScript", "AWS", "MongoDB"],
-          description:
-            "I'm a passionate Full Stack Developer with over 8 years of experience working with clients ranging from startups to Fortune 500 companies. I specialize in React, Node.js, TypeScript and have a strong background in creating user-centered designs that drive engagement and conversions.\n\nMy approach combines analytical thinking with creative problem solving to deliver solutions that not only look great but also achieve business objectives. I believe in collaborative relationships with clients to ensure we create experiences that truly connect with users.",
-          memberSince: "January 2020",
-          website: "www.alexjohnsondesign.com",
-          experience: [
+        // Obtener datos del freelancer desde la API
+        const userData = await getFreelancerById(id);
+        
+        // Transformar los datos de la API al formato que espera nuestra aplicación
+        const formattedPerson = {
+          id: userData.id,
+          name: userData.username || "Sin nombre",
+          title: userData.title || "Freelancer",
+          email: userData.email || "contact@example.com",
+          phone: userData.phone || "Disponible después de contactar",
+          location: userData.location || "Sin ubicación",
+          rating: userData.rating || 4.5,
+          reviews: userData.reviews || Math.floor(Math.random() * 100) + 10,
+          successRate: userData.successRate || Math.floor(Math.random() * 10) + 90,
+          hourlyRate: userData.hourlyRate || Math.floor(Math.random() * 50) + 30,
+          skills: userData.skills || ["Sin habilidades especificadas"],
+          description: userData.description || 
+            "Este freelancer aún no ha añadido una descripción detallada sobre su experiencia y servicios.",
+          memberSince: userData.createdAt ? new Date(userData.createdAt).toLocaleDateString() : "Fecha desconocida",
+          website: userData.website || "No disponible",
+          experience: userData.experience || [
             {
-              company: "Freelance",
-              position: "Senior Full Stack Developer",
-              period: "2020 - Present",
-              description:
-                "Working with various clients on design projects, focusing on user experience and interface design.",
-            },
-            {
-              company: "Design Studio Inc.",
-              position: "Full Stack Developer",
-              period: "2017 - 2020",
-              description:
-                "Led design projects for major clients, managing a team of junior designers and delivering high-quality work.",
-            },
-            {
-              company: "Creative Solutions Ltd",
-              position: "Junior Designer",
-              period: "2015 - 2017",
-              description:
-                "Assisted senior designers in creating websites, mobile apps, and branding materials for various clients.",
-            },
+              company: "Información no disponible",
+              position: "Freelancer",
+              period: "Actual",
+              description: "Este freelancer aún no ha añadido información sobre su experiencia laboral."
+            }
           ],
-          education: [
+          education: userData.education || [
             {
-              institution: "Stanford University",
-              degree: "Computer Science",
-              year: "2012-2016",
-            },
+              institution: "Información no disponible",
+              degree: "No especificado",
+              year: "No especificado"
+            }
           ],
-          portfolio: [
+          portfolio: userData.portfolio || [
             {
-              title: "E-commerce Redesign",
-              description:
-                "Complete redesign of user interface for an online store",
-              link: "#",
-            },
-            {
-              title: "Task Management App",
-              description:
-                "Development of a web application for project and task management",
-              link: "#",
-            },
-          ],
+              title: "Sin proyectos",
+              description: "Este freelancer aún no ha añadido proyectos a su portafolio.",
+              link: "#"
+            }
+          ]
         };
 
-        // Simular tiempo de carga
-        setTimeout(() => {
-          setPerson(mockPerson);
-          setLoading(false);
-        }, 1000);
+        setPerson(formattedPerson);
+        setLoading(false);
       } catch (err) {
         console.error("Error al obtener datos de la persona:", err);
         setError("No se pudo cargar la información de la persona");
@@ -145,7 +132,7 @@ const FreelancerDetail = () => {
             <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
               <div className="flex-shrink-0">
                 <img
-                  src={`https://randomuser.me/api/portraits/men/${id}.jpg`}
+                  src={`https://randomuser.me/api/portraits/${person.id % 2 === 0 ? "women" : "men"}/${person.id}.jpg`}
                   alt={person.name}
                   className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
                 />
@@ -170,8 +157,7 @@ const FreelancerDetail = () => {
                         ))}
                       </div>
                       <span className="ml-2 text-gray-700">
-                        {person.rating} · {person.reviews} reseñas ·{" "}
-                        {person.successRate}% Éxito laboral
+                        {person.rating} · {person.reviews} reseñas
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-2 mt-3">

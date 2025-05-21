@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import ServiceCard from "../components/ServiceCard";
 import { Button } from "../components/Button";
 import Pagination from "../components/Pagination";
 import { Link, useNavigate } from "react-router-dom";
+import { getFreelancersWithRole } from "../services/freelancer";
 
 const Freelancer = () => {
   const [freelancers, setFreelancers] = useState([]);
+  const [allFreelancers, setAllFreelancers] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [itemsPerPage] = useState(6);
@@ -15,109 +16,8 @@ const Freelancer = () => {
     "Cualquier Experiencia"
   );
   const [priceRange, setPriceRange] = useState(150);
-
-  // Datos de ejemplo para freelancers
-  const allFreelancers = [
-    {
-      id: 1,
-      name: "Alex Johnson",
-      title: "Desarrollador Full Stack",
-      rating: 4.9,
-      reviews: 124,
-      successRate: 98,
-      location: "San Francisco, CA",
-      hourlyRate: 85,
-      skills: ["React", "Node.js", "TypeScript"],
-    },
-    {
-      id: 2,
-      name: "Jessica Miller",
-      title: "Diseñadora UI/UX",
-      rating: 4.8,
-      reviews: 98,
-      successRate: 96,
-      location: "Londres, UK",
-      hourlyRate: 75,
-      skills: ["Figma", "UI Design", "User Research"],
-    },
-    {
-      id: 3,
-      name: "Carlos Rodríguez",
-      title: "Desarrollador Frontend",
-      rating: 4.7,
-      reviews: 87,
-      successRate: 95,
-      location: "Madrid, España",
-      hourlyRate: 65,
-      skills: ["React", "Vue.js", "CSS"],
-    },
-    {
-      id: 4,
-      name: "Laura Martínez",
-      title: "Especialista en Marketing Digital",
-      rating: 4.9,
-      reviews: 112,
-      successRate: 97,
-      location: "Barcelona, España",
-      hourlyRate: 70,
-      skills: ["SEO", "SEM", "Social Media"],
-    },
-    {
-      id: 5,
-      name: "David Wang",
-      title: "Desarrollador Backend",
-      rating: 4.8,
-      reviews: 76,
-      successRate: 94,
-      location: "Berlín, Alemania",
-      hourlyRate: 80,
-      skills: ["Python", "Django", "SQL"],
-    },
-    {
-      id: 6,
-      name: "Ana Gómez",
-      title: "Redactora de Contenido",
-      rating: 4.6,
-      reviews: 65,
-      successRate: 92,
-      location: "Ciudad de México, México",
-      hourlyRate: 45,
-      skills: ["Copywriting", "SEO", "Blogs"],
-    },
-    {
-      id: 7,
-      name: "Michael Brown",
-      title: "Diseñador Gráfico",
-      rating: 4.7,
-      reviews: 91,
-      successRate: 93,
-      location: "Toronto, Canadá",
-      hourlyRate: 60,
-      skills: ["Photoshop", "Illustrator", "Branding"],
-    },
-    {
-      id: 8,
-      name: "Sophie Dubois",
-      title: "Traductora",
-      rating: 4.9,
-      reviews: 103,
-      successRate: 99,
-      location: "París, Francia",
-      hourlyRate: 55,
-      skills: ["Inglés", "Francés", "Español"],
-    },
-    {
-      id: 9,
-      name: "Hiroshi Tanaka",
-      title: "Desarrollador de Aplicaciones Móviles",
-      rating: 4.8,
-      reviews: 88,
-      successRate: 96,
-      location: "Tokio, Japón",
-      hourlyRate: 90,
-      skills: ["Swift", "Kotlin", "Flutter"],
-    },
-  ];
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const categorias = [
     "Desarrollo Web",
@@ -135,41 +35,87 @@ const Freelancer = () => {
     "Experto",
   ];
 
+  // Cargar freelancers desde la API
   useEffect(() => {
-    let filtered = allFreelancers;
+    const fetchFreelancers = async () => {
+      setLoading(true);
+      try {
+        const data = await getFreelancersWithRole();
+        console.log("Datos recibidos de la API:", data);
+
+        // Establecer directamente los datos con las propiedades necesarias
+        setAllFreelancers(
+          data.map((user) => ({
+            ...user,
+            // Acceder a las propiedades dentro del objeto freelancer
+            hourlyRate: user.freelancer?.hourlyRate || 30,
+            skills: user.freelancer?.skills || [
+              "Sin habilidades especificadas",
+            ],
+            title: user.freelancer?.title || "Freelancer",
+            description: user.freelancer?.description || "",
+            name: user.username || "Sin nombre",
+          }))
+        );
+
+        setLoading(false);
+      } catch (err) {
+        console.error("Error al cargar freelancers:", err);
+        setError(
+          "No se pudieron cargar los freelancers. Por favor, intenta de nuevo más tarde."
+        );
+        setLoading(false);
+      }
+    };
+
+    fetchFreelancers();
+  }, []);
+
+  // Filtrar freelancers según los criterios seleccionados
+  useEffect(() => {
+    let filtered = [...allFreelancers];
 
     if (categoryFilter) {
       filtered = filtered.filter(
         (f) =>
-          f.skills.some((skill) =>
-            skill.toLowerCase().includes(categoryFilter.toLowerCase())
-          ) || f.title.toLowerCase().includes(categoryFilter.toLowerCase())
+          (f.skills &&
+            f.skills.some((skill) =>
+              skill.toLowerCase().includes(categoryFilter.toLowerCase())
+            )) ||
+          (f.title &&
+            f.title.toLowerCase().includes(categoryFilter.toLowerCase()))
       );
     }
 
     if (searchTerm.trim() !== "") {
       filtered = filtered.filter(
         (f) =>
-          f.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          f.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          f.skills.some((skill) =>
-            skill.toLowerCase().includes(searchTerm.toLowerCase())
-          )
+          (f.name && f.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (f.username &&
+            f.username.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (f.title &&
+            f.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (f.skills &&
+            f.skills.some((skill) =>
+              skill.toLowerCase().includes(searchTerm.toLowerCase())
+            ))
       );
     }
 
-    // Filtrar por precio
-    filtered = filtered.filter((f) => f.hourlyRate <= priceRange);
+    // Filtrar por precio (con valor predeterminado si no existe)
+    filtered = filtered.filter((f) => (f.hourlyRate || 30) <= priceRange);
 
     // Filtrar por experiencia (simulado)
     if (experienceLevel !== "Cualquier Experiencia") {
       // Lógica simplificada para demostración
       if (experienceLevel === "Experto") {
-        filtered = filtered.filter((f) => f.rating >= 4.8);
+        filtered = filtered.filter((f) => (f.rating || 4.5) >= 4.8);
       } else if (experienceLevel === "Intermedio") {
-        filtered = filtered.filter((f) => f.rating >= 4.5 && f.rating < 4.8);
+        filtered = filtered.filter(
+          (f) => (f.rating || 4.5) >= 4.5 && (f.rating || 4.5) < 4.8
+        );
       } else if (experienceLevel === "Principiante") {
-        filtered = filtered.filter((f) => f.rating < 4.5);
+        filtered = filtered.filter((f) => (f.rating || 4.5) < 4.5);
       }
     }
 
@@ -182,7 +128,14 @@ const Freelancer = () => {
     );
 
     setFreelancers(selectedFreelancers);
-  }, [currentPage, categoryFilter, searchTerm, experienceLevel, priceRange]);
+  }, [
+    currentPage,
+    categoryFilter,
+    searchTerm,
+    experienceLevel,
+    priceRange,
+    allFreelancers,
+  ]);
 
   const handleCategoryClick = (category) => {
     setCategoryFilter(category);
@@ -333,132 +286,124 @@ const Freelancer = () => {
 
           {/* Resultados */}
           <div className="w-full md:w-3/4">
-            <p className="text-gray-600 mb-4">
-              Mostrando {freelancers.length} freelancers
-            </p>
-
-            {freelancers.length === 0 ? (
-              <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center">
-                <p className="text-gray-500 text-lg">
-                  No se encontraron freelancers que coincidan con tus criterios.
-                </p>
-                <Button
-                  className="mt-4"
-                  onClick={() => {
-                    setSearchTerm("");
-                    setCategoryFilter("");
-                    setExperienceLevel("Cualquier Experiencia");
-                    setPriceRange(150);
-                    setCurrentPage(1);
-                  }}
-                >
-                  Limpiar filtros
-                </Button>
+            {loading ? (
+              <div className="text-center py-8">
+                <p className="text-gray-600">Cargando freelancers...</p>
+              </div>
+            ) : error ? (
+              <div className="bg-red-100 p-4 rounded-lg text-red-700">
+                <p>{error}</p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {freelancers.map((freelancer) => (
-                  <div
-                    key={freelancer.id}
-                    className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex flex-col md:flex-row gap-4 items-start cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => handleFreelancerClick(freelancer.id)}
-                  >
-                    <div className="flex-shrink-0">
-                      <img
-                        src={`https://randomuser.me/api/portraits/${
-                          freelancer.id % 2 === 0 ? "women" : "men"
-                        }/${freelancer.id}.jpg`}
-                        alt={freelancer.name}
-                        className="w-16 h-16 rounded-full object-cover"
-                      />
-                    </div>
-                    <div className="flex-grow">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="text-xl font-bold">
-                            {freelancer.name}
-                          </h3>
-                          <p className="text-gray-600">{freelancer.title}</p>
-                        </div>
-                        <p className="text-xl font-bold">
-                          ${freelancer.hourlyRate}/hr
-                        </p>
-                      </div>
+              <>
+                <p className="text-gray-600 mb-4">
+                  Mostrando {freelancers.length} freelancers
+                </p>
 
-                      <div className="flex items-center mt-2">
-                        <span className="flex items-center text-yellow-500 mr-2">
-                          <svg
-                            className="w-5 h-5"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                          </svg>
-                          {freelancer.rating}
-                        </span>
-                        <span className="text-gray-500 mr-2">
-                          • {freelancer.reviews} reseñas
-                        </span>
-                        <span className="text-gray-500">
-                          • {freelancer.successRate}% Éxito en trabajos
-                        </span>
-                      </div>
-
-                      <div className="flex items-center mt-2 text-gray-500">
-                        <svg
-                          className="w-5 h-5 mr-1"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                          />
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                          />
-                        </svg>
-                        {freelancer.location}
-                      </div>
-
-                      <div className="flex flex-wrap gap-2 mt-3">
-                        {freelancer.skills.map((skill, index) => (
-                          <span
-                            key={index}
-                            className="px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-md"
-                          >
-                            {skill}
-                          </span>
-                        ))}
-                        {freelancer.skills.length > 3 && (
-                          <span className="px-3 py-1 bg-gray-100 text-gray-800 text-sm rounded-md">
-                            +{freelancer.skills.length - 3} más
-                          </span>
-                        )}
-                      </div>
-                    </div>
+                {freelancers.length === 0 ? (
+                  <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center">
+                    <p className="text-gray-500 text-lg">
+                      No se encontraron freelancers que coincidan con tus
+                      criterios.
+                    </p>
+                    <Button
+                      className="mt-4"
+                      onClick={() => {
+                        setSearchTerm("");
+                        setCategoryFilter("");
+                        setExperienceLevel("Cualquier Experiencia");
+                        setPriceRange(150);
+                        setCurrentPage(1);
+                      }}
+                    >
+                      Limpiar filtros
+                    </Button>
                   </div>
-                ))}
-              </div>
-            )}
+                ) : (
+                  <div className="space-y-4">
+                    {freelancers.map((freelancer) => (
+                      <div
+                        key={freelancer.id}
+                        className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex flex-col md:flex-row gap-4 items-start cursor-pointer hover:shadow-md transition-shadow"
+                        onClick={() => handleFreelancerClick(freelancer.id)}
+                      >
+                        <div className="flex-shrink-0">
+                          <img
+                            src={`https://randomuser.me/api/portraits/${
+                              freelancer.id % 2 === 0 ? "women" : "men"
+                            }/${freelancer.id % 10 || 1}.jpg`}
+                            alt={freelancer.username}
+                            className="w-16 h-16 rounded-full object-cover"
+                          />
+                        </div>
+                        <div className="flex-grow">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="text-xl font-bold">
+                                {freelancer.username}
+                              </h3>
+                              <p className="text-gray-600">
+                                {freelancer.title}
+                              </p>
+                            </div>
+                            <p className="text-xl font-bold">
+                              ${freelancer.hourlyRate}/hr
+                            </p>
+                          </div>
 
-            {/* Paginación */}
-            {totalPages > 1 && (
-              <div className="mt-8">
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={setCurrentPage}
-                />
-              </div>
+                          <div className="flex items-center mt-2">
+                            <span className="flex items-center text-yellow-500 mr-2">
+                              <svg
+                                className="w-5 h-5"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                              </svg>
+                              {freelancer.rating || 4.5}
+                            </span>
+                            <span className="text-gray-500 mr-2">
+                              •{" "}
+                              {freelancer.reviews ||
+                                Math.floor(Math.random() * 100) + 10}{" "}
+                              reseñas
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-2 mt-3">
+                            {freelancer.skills &&
+                            freelancer.skills.length > 0 ? (
+                              freelancer.skills.map((skill, index) => (
+                                <span
+                                  key={index}
+                                  className="px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-md"
+                                >
+                                  {skill}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-md">
+                                Sin habilidades especificadas
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Paginación */}
+                {totalPages > 1 && (
+                  <div className="mt-8">
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      onPageChange={setCurrentPage}
+                    />
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
