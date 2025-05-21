@@ -34,16 +34,20 @@ const FreelancerDetail = () => {
         const formattedPerson = {
           id: userData.id,
           name: userData.username || "Sin nombre",
-          title: userData.title || "Freelancer",
+          title: userData.freelancer?.title || "Freelancer",
           email: userData.email || "contact@example.com",
           phone: userData.phone || "Disponible después de contactar",
           location: userData.location || "Sin ubicación",
-          rating: userData.rating || 4.5,
-          reviews: userData.reviews || Math.floor(Math.random() * 100) + 10,
+          rating: userData.freelancer?.reviews?.length > 0 
+            ? (userData.freelancer.reviews.reduce((sum, review) => sum + parseFloat(review.rating), 0) / 
+               userData.freelancer.reviews.length).toFixed(1)
+            : 4.5,
+          reviews: userData.freelancer?.reviews || [],
+          reviewCount: userData.freelancer?.reviews?.length || 0,
           successRate: userData.successRate || Math.floor(Math.random() * 10) + 90,
-          hourlyRate: userData.hourlyRate || Math.floor(Math.random() * 50) + 30,
-          skills: userData.skills || ["Sin habilidades especificadas"],
-          description: userData.description || 
+          hourlyRate: userData.freelancer?.hourlyRate || 30,
+          skills: userData.freelancer?.skills || ["Sin habilidades especificadas"],
+          description: userData.freelancer?.description || 
             "Este freelancer aún no ha añadido una descripción detallada sobre su experiencia y servicios.",
           memberSince: userData.createdAt ? new Date(userData.createdAt).toLocaleDateString() : "Fecha desconocida",
           website: userData.website || "No disponible",
@@ -157,7 +161,7 @@ const FreelancerDetail = () => {
                         ))}
                       </div>
                       <span className="ml-2 text-gray-700">
-                        {person.rating} · {person.reviews} reseñas
+                        {person.rating} · {person.reviewCount} reseñas
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-2 mt-3">
@@ -333,69 +337,44 @@ const FreelancerDetail = () => {
                       Reseñas de clientes
                     </h2>
                     <div className="space-y-6">
-                      <div className="p-4 border rounded-lg">
-                        <div className="flex justify-between mb-2">
-                          <div className="flex items-center">
-                            <div className="w-10 h-10 bg-gray-200 rounded-full mr-3"></div>
-                            <div>
-                              <p className="font-medium">Cliente Satisfecho</p>
-                              <div className="flex text-yellow-400">
-                                {[...Array(5)].map((_, i) => (
-                                  <svg
-                                    key={i}
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="h-4 w-4"
-                                    viewBox="0 0 20 20"
-                                    fill="currentColor"
-                                  >
-                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                  </svg>
-                                ))}
+                      {person.reviews && person.reviews.length > 0 ? (
+                        person.reviews.map((review) => (
+                          <div key={review.id} className="p-4 border rounded-lg">
+                            <div className="flex justify-between mb-2">
+                              <div className="flex items-center">
+                                <div className="w-10 h-10 bg-gray-200 rounded-full mr-3"></div>
+                                <div>
+                                  <p className="font-medium">{review.user.username}</p>
+                                  <div className="flex text-yellow-400">
+                                    {[...Array(5)].map((_, i) => (
+                                      <svg
+                                        key={i}
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="h-4 w-4"
+                                        viewBox="0 0 20 20"
+                                        fill={i < Math.floor(parseFloat(review.rating)) ? "currentColor" : "none"}
+                                        stroke="currentColor"
+                                      >
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                      </svg>
+                                    ))}
+                                  </div>
+                                </div>
                               </div>
+                              <span className="text-gray-500 text-sm">
+                                {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : "Hace 2 meses"}
+                              </span>
                             </div>
+                            <p className="text-gray-700">
+                              {review.comment}
+                            </p>
                           </div>
-                          <span className="text-gray-500 text-sm">
-                            Hace 2 meses
-                          </span>
+                        ))
+                      ) : (
+                        <div className="p-4 border rounded-lg text-center">
+                          <p className="text-gray-500">Este freelancer aún no tiene reseñas.</p>
                         </div>
-                        <p className="text-gray-700">
-                          Excelente trabajo. Alex entendió perfectamente lo que
-                          necesitaba y entregó el proyecto antes de lo esperado.
-                          Muy recomendable.
-                        </p>
-                      </div>
-
-                      <div className="p-4 border rounded-lg">
-                        <div className="flex justify-between mb-2">
-                          <div className="flex items-center">
-                            <div className="w-10 h-10 bg-gray-200 rounded-full mr-3"></div>
-                            <div>
-                              <p className="font-medium">Otro Cliente</p>
-                              <div className="flex text-yellow-400">
-                                {[...Array(5)].map((_, i) => (
-                                  <svg
-                                    key={i}
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="h-4 w-4"
-                                    viewBox="0 0 20 20"
-                                    fill="currentColor"
-                                  >
-                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                  </svg>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                          <span className="text-gray-500 text-sm">
-                            Hace 3 meses
-                          </span>
-                        </div>
-                        <p className="text-gray-700">
-                          Gran comunicación y resultados impresionantes.
-                          Definitivamente volveré a trabajar con Alex en futuros
-                          proyectos.
-                        </p>
-                      </div>
+                      )}
                     </div>
                   </div>
                 )}

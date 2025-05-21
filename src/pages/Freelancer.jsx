@@ -41,7 +41,6 @@ const Freelancer = () => {
       setLoading(true);
       try {
         const data = await getFreelancersWithRole();
-        console.log("Datos recibidos de la API:", data);
 
         // Establecer directamente los datos con las propiedades necesarias
         setAllFreelancers(
@@ -105,18 +104,24 @@ const Freelancer = () => {
     // Filtrar por precio (con valor predeterminado si no existe)
     filtered = filtered.filter((f) => (f.hourlyRate || 30) <= priceRange);
 
-    // Filtrar por experiencia (simulado)
+    // Filtrar por experiencia basado en el rating promedio de las reseñas
     if (experienceLevel !== "Cualquier Experiencia") {
-      // Lógica simplificada para demostración
-      if (experienceLevel === "Experto") {
-        filtered = filtered.filter((f) => (f.rating || 4.5) >= 4.8);
-      } else if (experienceLevel === "Intermedio") {
-        filtered = filtered.filter(
-          (f) => (f.rating || 4.5) >= 4.5 && (f.rating || 4.5) < 4.8
-        );
-      } else if (experienceLevel === "Principiante") {
-        filtered = filtered.filter((f) => (f.rating || 4.5) < 4.5);
-      }
+      filtered = filtered.filter((f) => {
+        // Calcular rating promedio si hay reseñas disponibles
+        const reviews = f.freelancer?.reviews || [];
+        const avgRating = reviews.length > 0 
+          ? reviews.reduce((sum, review) => sum + parseFloat(review.rating), 0) / reviews.length
+          : 4.5; // Valor por defecto si no hay reseñas
+        
+        if (experienceLevel === "Experto") {
+          return avgRating >= 4.8;
+        } else if (experienceLevel === "Intermedio") {
+          return avgRating >= 4.5 && avgRating < 4.8;
+        } else if (experienceLevel === "Principiante") {
+          return avgRating < 4.5;
+        }
+        return true;
+      });
     }
 
     setTotalPages(Math.ceil(filtered.length / itemsPerPage));
@@ -343,11 +348,11 @@ const Freelancer = () => {
                                 {freelancer.username}
                               </h3>
                               <p className="text-gray-600">
-                                {freelancer.title}
+                                {freelancer.freelancer?.title || "Freelancer"}
                               </p>
                             </div>
                             <p className="text-xl font-bold">
-                              ${freelancer.hourlyRate}/hr
+                              ${freelancer.freelancer?.hourlyRate || 30}/hr
                             </p>
                           </div>
 
@@ -361,19 +366,26 @@ const Freelancer = () => {
                               >
                                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                               </svg>
-                              {freelancer.rating || 4.5}
+                              {freelancer.freelancer?.reviews?.length > 0
+                                ? (
+                                    freelancer.freelancer.reviews.reduce(
+                                      (sum, review) => sum + parseFloat(review.rating),
+                                      0
+                                    ) / freelancer.freelancer.reviews.length
+                                  ).toFixed(1)
+                                : "4.5"}
                             </span>
                             <span className="text-gray-500 mr-2">
                               •{" "}
-                              {freelancer.reviews ||
+                              {freelancer.freelancer?.reviews?.length || 
                                 Math.floor(Math.random() * 100) + 10}{" "}
                               reseñas
                             </span>
                           </div>
                           <div className="flex flex-wrap gap-2 mt-3">
-                            {freelancer.skills &&
-                            freelancer.skills.length > 0 ? (
-                              freelancer.skills.map((skill, index) => (
+                            {freelancer.freelancer?.skills &&
+                            freelancer.freelancer.skills.length > 0 ? (
+                              freelancer.freelancer.skills.map((skill, index) => (
                                 <span
                                   key={index}
                                   className="px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-md"
