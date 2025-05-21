@@ -33,9 +33,6 @@ const Navbar = () => {
           {isAuthenticated && (
             <Link to="/messages" className="text-gray-600 hover:text-purple-900 flex items-center">
               Mensajes
-              <span className="ml-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                3
-              </span>
             </Link>
           )}
         </div>

@@ -210,7 +210,6 @@ const FreelancerDetail = () => {
                         </svg>
                         Enviar Mensaje
                       </button>
-                      <Button className="px-4 py-2">Contactar</Button>
                     </div>
                   </div>
                 </div>
@@ -397,11 +396,6 @@ const FreelancerDetail = () => {
                     <p>{person.email}</p>
                   </div>
 
-                  <div className="mb-4">
-                    <p className="text-sm text-gray-500 mb-1">Teléfono</p>
-                    <p>{person.phone}</p>
-                  </div>
-
                   <div className="mb-6">
                     <p className="text-sm text-gray-500 mb-1">Sitio web</p>
                     <a
@@ -413,10 +407,6 @@ const FreelancerDetail = () => {
                       {person.website}
                     </a>
                   </div>
-
-                  <Button className="w-full mb-2">
-                    Contactar a {person.name.split(" ")[0]}
-                  </Button>
                 </div>
               </div>
             </div>
