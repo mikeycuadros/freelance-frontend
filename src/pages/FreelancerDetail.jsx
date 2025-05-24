@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { Button } from "../components/Button";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { getFreelancerById } from "../services/freelancer";
+import { getFreelancerById } from "../services/user";
 
 const FreelancerDetail = () => {
   const { id } = useParams();
@@ -29,7 +29,7 @@ const FreelancerDetail = () => {
       try {
         // Obtener datos del freelancer desde la API
         const userData = await getFreelancerById(id);
-        
+
         // Transformar los datos de la API al formato que espera nuestra aplicación
         const formattedPerson = {
           id: userData.id,
@@ -38,41 +38,53 @@ const FreelancerDetail = () => {
           email: userData.email || "contact@example.com",
           phone: userData.phone || "Disponible después de contactar",
           location: userData.location || "Sin ubicación",
-          rating: userData.freelancer?.reviews?.length > 0 
-            ? (userData.freelancer.reviews.reduce((sum, review) => sum + parseFloat(review.rating), 0) / 
-               userData.freelancer.reviews.length).toFixed(1)
-            : 4.5,
+          rating:
+            userData.freelancer?.reviews?.length > 0
+              ? (
+                  userData.freelancer.reviews.reduce(
+                    (sum, review) => sum + parseFloat(review.rating),
+                    0
+                  ) / userData.freelancer.reviews.length
+                ).toFixed(1)
+              : "0.0",
           reviews: userData.freelancer?.reviews || [],
           reviewCount: userData.freelancer?.reviews?.length || 0,
-          successRate: userData.successRate || Math.floor(Math.random() * 10) + 90,
-          hourlyRate: userData.freelancer?.hourlyRate || 30,
-          skills: userData.freelancer?.skills || ["Sin habilidades especificadas"],
-          description: userData.freelancer?.description || 
+          successRate: userData.successRate || 0,
+          hourlyRate: userData.freelancer?.hourlyRate || 0,
+          skills: userData.freelancer?.skills || [
+            "Sin habilidades especificadas",
+          ],
+          description:
+            userData.freelancer?.description ||
             "Este freelancer aún no ha añadido una descripción detallada sobre su experiencia y servicios.",
-          memberSince: userData.createdAt ? new Date(userData.createdAt).toLocaleDateString() : "Fecha desconocida",
+          memberSince: userData.createdAt
+            ? new Date(userData.createdAt).toLocaleDateString()
+            : "Fecha desconocida",
           website: userData.website || "No disponible",
           experience: userData.experience || [
             {
               company: "Información no disponible",
               position: "Freelancer",
               period: "Actual",
-              description: "Este freelancer aún no ha añadido información sobre su experiencia laboral."
-            }
+              description:
+                "Este freelancer aún no ha añadido información sobre su experiencia laboral.",
+            },
           ],
           education: userData.education || [
             {
               institution: "Información no disponible",
               degree: "No especificado",
-              year: "No especificado"
-            }
+              year: "No especificado",
+            },
           ],
           portfolio: userData.portfolio || [
             {
               title: "Sin proyectos",
-              description: "Este freelancer aún no ha añadido proyectos a su portafolio.",
-              link: "#"
-            }
-          ]
+              description:
+                "Este freelancer aún no ha añadido proyectos a su portafolio.",
+              link: "#",
+            },
+          ],
         };
 
         setPerson(formattedPerson);
@@ -136,7 +148,9 @@ const FreelancerDetail = () => {
             <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
               <div className="flex-shrink-0">
                 <img
-                  src={`https://randomuser.me/api/portraits/${person.id % 2 === 0 ? "women" : "men"}/${person.id}.jpg`}
+                  src={`https://randomuser.me/api/portraits/${
+                    person.id % 2 === 0 ? "women" : "men"
+                  }/${person.id}.jpg`}
                   alt={person.name}
                   className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
                 />
@@ -335,15 +349,21 @@ const FreelancerDetail = () => {
                     <h2 className="text-xl font-bold mb-4">
                       Reseñas de clientes
                     </h2>
+
                     <div className="space-y-6">
                       {person.reviews && person.reviews.length > 0 ? (
                         person.reviews.map((review) => (
-                          <div key={review.id} className="p-4 border rounded-lg">
+                          <div
+                            key={review.id}
+                            className="p-4 border rounded-lg"
+                          >
                             <div className="flex justify-between mb-2">
                               <div className="flex items-center">
                                 <div className="w-10 h-10 bg-gray-200 rounded-full mr-3"></div>
                                 <div>
-                                  <p className="font-medium">{review.user.username}</p>
+                                  <p className="font-medium">
+                                    {review.user.username}
+                                  </p>
                                   <div className="flex text-yellow-400">
                                     {[...Array(5)].map((_, i) => (
                                       <svg
@@ -351,7 +371,12 @@ const FreelancerDetail = () => {
                                         xmlns="http://www.w3.org/2000/svg"
                                         className="h-4 w-4"
                                         viewBox="0 0 20 20"
-                                        fill={i < Math.floor(parseFloat(review.rating)) ? "currentColor" : "none"}
+                                        fill={
+                                          i <
+                                          Math.floor(parseFloat(review.rating))
+                                            ? "currentColor"
+                                            : "none"
+                                        }
                                         stroke="currentColor"
                                       >
                                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
@@ -361,17 +386,112 @@ const FreelancerDetail = () => {
                                 </div>
                               </div>
                               <span className="text-gray-500 text-sm">
-                                {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : "Hace 2 meses"}
+                                {review.createdAt
+                                  ? new Date(
+                                      review.createdAt
+                                    ).toLocaleDateString()
+                                  : "Hace 2 meses"}
                               </span>
                             </div>
-                            <p className="text-gray-700">
-                              {review.comment}
-                            </p>
+                            <p className="text-gray-700">{review.comment}</p>
                           </div>
                         ))
                       ) : (
                         <div className="p-4 border rounded-lg text-center">
-                          <p className="text-gray-500">Este freelancer aún no tiene reseñas.</p>
+                          <p className="text-gray-500">
+                            Este freelancer aún no tiene reseñas.
+                          </p>
+                        </div>
+                      )}
+                      {isAuthenticated && user && user.id !== parseInt(id) && (
+                        <div className="mb-6 p-4 border rounded-lg bg-gray-50">
+                          <h3 className="text-lg font-semibold mb-3">
+                            Añadir una reseña
+                          </h3>
+                          <form
+                            onSubmit={(e) => {
+                              e.preventDefault();
+                              const rating = e.target.rating.value;
+                              const comment = e.target.comment.value;
+
+                              // Aquí implementarías la lógica para enviar la reseña al backend
+                              console.log("Enviando reseña:", {
+                                rating,
+                                comment,
+                                freelancerId: id,
+                              });
+
+                              // Ejemplo de cómo podría ser la llamada a la API
+                              // addReview({ rating, comment, freelancerId: id })
+                              //   .then(response => {
+                              //     // Actualizar la lista de reseñas
+                              //     fetchPersonData();
+                              //     // Limpiar el formulario
+                              //     e.target.reset();
+                              //   })
+                              //   .catch(error => {
+                              //     console.error("Error al enviar la reseña:", error);
+                              //   });
+                            }}
+                          >
+                            <div className="mb-4">
+                              <label
+                                htmlFor="rating"
+                                className="block text-sm font-medium text-gray-700 mb-1"
+                              >
+                                Calificación
+                              </label>
+                              <div className="flex items-center">
+                                {[5, 4, 3, 2, 1].map((value) => (
+                                  <label
+                                    key={value}
+                                    className="mr-4 flex items-center cursor-pointer"
+                                  >
+                                    <input
+                                      type="radio"
+                                      name="rating"
+                                      value={value}
+                                      className="mr-1"
+                                      defaultChecked={value === 5}
+                                    />
+                                    <span>{value}</span>
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      className="h-5 w-5 text-yellow-400 ml-1"
+                                      viewBox="0 0 20 20"
+                                      fill="currentColor"
+                                    >
+                                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                    </svg>
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="mb-4">
+                              <label
+                                htmlFor="comment"
+                                className="block text-sm font-medium text-gray-700 mb-1"
+                              >
+                                Comentario
+                              </label>
+                              <textarea
+                                id="comment"
+                                name="comment"
+                                rows="4"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                placeholder="Comparte tu experiencia trabajando con este freelancer..."
+                                required
+                              ></textarea>
+                            </div>
+
+                            <button
+                              type="submit"
+                              className="px-4 py-2 bg-purple-800 text-white rounded-md hover:bg-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            >
+                              Publicar reseña
+                            </button>
+                          </form>
                         </div>
                       )}
                     </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { getAllCategories } from "../services/category";
+import { getFreelancersWithRole } from "../services/user";
 import { useFetch } from "../hooks/useFetch";
 import CategoryIcon from "../components/CategoryIcon";
 import { Button } from "../components/Button";
@@ -14,13 +15,64 @@ const Categories = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredCategories, setFilteredCategories] = useState([]);
+  const [categoriesWithFreelancerCount, setCategoriesWithFreelancerCount] =
+    useState([]);
+  const [loadingFreelancers, setLoadingFreelancers] = useState(true);
+  const navigate = useNavigate();
+
+  // Obtener freelancers y contar cuántos pertenecen a cada categoría
+  useEffect(() => {
+    const fetchFreelancersAndCountByCategory = async () => {
+      if (!categories) return;
+
+      try {
+        setLoadingFreelancers(true);
+        // Obtener todos los freelancers
+        const freelancers = await getFreelancersWithRole();
+
+        // Mapear las categorías y contar freelancers para cada una
+        const categoriesWithCount = categories.map((category) => {
+          // Contar cuántos freelancers tienen habilidades que coinciden con esta categoría
+          const count = freelancers.filter((freelancer) => {
+            // Obtener las habilidades del freelancer
+            const freelancerSkills = freelancer.freelancer?.skills || [];
+
+            // Obtener las habilidades de la categoría
+            const categorySkills = category.skills || [];
+
+            // Verificar si hay al menos una habilidad que coincida exactamente
+            return freelancerSkills.some((skill) =>
+              categorySkills.some(
+                (categorySkill) =>
+                  skill.toLowerCase() === categorySkill.toLowerCase()
+              )
+            );
+          }).length;
+
+          // Devolver la categoría con el contador de freelancers
+          return {
+            ...category,
+            freelancerCount: count,
+          };
+        });
+
+        setCategoriesWithFreelancerCount(categoriesWithCount);
+        setLoadingFreelancers(false);
+      } catch (error) {
+        console.error("Error al obtener freelancers:", error);
+        setLoadingFreelancers(false);
+      }
+    };
+
+    fetchFreelancersAndCountByCategory();
+  }, [categories]);
 
   useEffect(() => {
-    if (categories) {
+    if (categoriesWithFreelancerCount.length > 0) {
       if (searchTerm.trim() === "") {
-        setFilteredCategories(categories);
+        setFilteredCategories(categoriesWithFreelancerCount);
       } else {
-        const filtered = categories.filter(
+        const filtered = categoriesWithFreelancerCount.filter(
           (category) =>
             category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             (category.description &&
@@ -31,11 +83,15 @@ const Categories = () => {
         setFilteredCategories(filtered);
       }
     }
-  }, [categories, searchTerm]);
+  }, [categoriesWithFreelancerCount, searchTerm]);
 
   const handleSearch = (e) => {
     e.preventDefault();
-    // La búsqueda ya se maneja en el useEffect
+  };
+
+  const handleCategoryClick = (e, category) => {
+    e.preventDefault();
+    navigate(`/categories/${category.id}`);
   };
 
   return (
@@ -79,7 +135,7 @@ const Categories = () => {
           </form>
         </div>
 
-        {loadingCategories ? (
+        {loadingCategories || loadingFreelancers ? (
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((i) => (
               <div
@@ -110,12 +166,12 @@ const Categories = () => {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {filteredCategories?.map((category) => (
-                  <Link
-                    to={`/category/${category.id}`}
+                  <div
                     key={category.id}
                     className="block"
+                    onClick={(e) => handleCategoryClick(e, category)}
                   >
-                    <div className="bg-white hover:bg-gray-50 rounded-lg p-6 transition-all duration-300 border border-gray-100 hover:shadow-md">
+                    <div className="bg-white hover:bg-gray-50 rounded-lg p-6 transition-all duration-300 border border-gray-100 hover:shadow-md cursor-pointer">
                       <div className="mb-4">
                         <CategoryIcon type={category.icon} />
                       </div>
@@ -127,7 +183,7 @@ const Categories = () => {
                       </p>
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-gray-500">
-                          {category.serviceCount || 0} freelancers
+                          {category.freelancerCount || 0} freelancers
                         </span>
                         <span className="text-purple-800 text-sm font-medium flex items-center">
                           Explorar
@@ -146,7 +202,7 @@ const Categories = () => {
                         </span>
                       </div>
                     </div>
-                  </Link>
+                  </div>
                 ))}
               </div>
             )}

@@ -22,7 +22,7 @@ const Login = () => {
     setError("");
     try {
       const result = await login(form);
-      if (result.success) {
+      if (result.token) {
         navigate("/");
       } else {
         setError(result.message || "Error al iniciar sesión");

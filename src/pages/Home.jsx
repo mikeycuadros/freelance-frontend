@@ -1,24 +1,74 @@
-import React from "react";
-import ServiceCard from "../components/ServiceCard";
-import CategoryCard from "../components/CategoryCard";
+import React, { useState, useEffect } from "react";
 import { Button } from "../components/Button";
-import { Link } from "react-router-dom";
-// import { getAllServices } from "../services/service";
+import { Link, useNavigate } from "react-router-dom";
 import { getAllCategories } from "../services/category";
+import { getFreelancersWithRole } from "../services/user";
 import { useFetch } from "../hooks/useFetch";
 import CategoryIcon from "../components/CategoryIcon";
 
 const Home = () => {
-  // const {
-  //   data: services,
-  //   loading: loadingServices,
-  //   error: errorServices,
-  // } = useFetch(() => getAllServices(), []);
   const {
     data: categories,
     loading: loadingCategories,
     error: errorCategories,
   } = useFetch(() => getAllCategories(), []);
+  const navigate = useNavigate();
+
+  const [categoriesWithFreelancerCount, setCategoriesWithFreelancerCount] =
+    useState([]);
+  const [loadingFreelancers, setLoadingFreelancers] = useState(true);
+
+  // Obtener freelancers y contar cuántos pertenecen a cada categoría
+  useEffect(() => {
+    const fetchFreelancersAndCountByCategory = async () => {
+      if (!categories) return;
+
+      try {
+        setLoadingFreelancers(true);
+        // Obtener todos los freelancers
+        const freelancers = await getFreelancersWithRole();
+
+        // Mapear las categorías y contar freelancers para cada una
+        const categoriesWithCount = categories.map((category) => {
+          // Contar cuántos freelancers tienen habilidades que coinciden con esta categoría
+          const count = freelancers.filter((freelancer) => {
+            // Obtener las habilidades del freelancer
+            const freelancerSkills = freelancer.freelancer?.skills || [];
+
+            // Obtener las habilidades de la categoría
+            const categorySkills = category.skills || [];
+
+            // Verificar si hay al menos una habilidad que coincida exactamente
+            return freelancerSkills.some((skill) =>
+              categorySkills.some(
+                (categorySkill) =>
+                  skill.toLowerCase() === categorySkill.toLowerCase()
+              )
+            );
+          }).length;
+
+          // Devolver la categoría con el contador de freelancers
+          return {
+            ...category,
+            freelancerCount: count,
+          };
+        });
+
+        setCategoriesWithFreelancerCount(categoriesWithCount);
+        setLoadingFreelancers(false);
+      } catch (error) {
+        console.error("Error al obtener freelancers:", error);
+        setLoadingFreelancers(false);
+      }
+    };
+
+    fetchFreelancersAndCountByCategory();
+  }, [categories]);
+
+  const handleCategoryClick = (e, category) => {
+    e.preventDefault();
+    navigate(`/categories/${category.id}`);
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -36,7 +86,7 @@ const Home = () => {
               Trabaja con freelancers talentosos para dar vida a tus ideas.
             </p>
             <div className="flex flex-wrap gap-4">
-              <Link to="/explore">
+              <Link to="/freelancer">
                 <Button className="text-lg px-6 py-3">Buscar Talento</Button>
               </Link>
               <Link to="/register">
@@ -92,7 +142,7 @@ const Home = () => {
             para las necesidades de tu proyecto
           </p>
 
-          {loadingCategories ? (
+          {loadingCategories || loadingFreelancers ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <div
@@ -110,11 +160,11 @@ const Home = () => {
             <p className="text-red-500 text-center">{errorCategories}</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {categories?.slice(0, 6).map((category) => (
-                <Link
-                  to={`/category/${category.id}`}
+              {categoriesWithFreelancerCount?.slice(0, 6).map((category) => (
+                <div
                   key={category.id}
-                  className="block"
+                  className="block cursor-pointer"
+                  onClick={(e) => handleCategoryClick(e, category)}
                 >
                   <div className="bg-gray-50 hover:bg-gray-100 rounded-lg p-6 transition-all duration-300 border border-gray-100 hover:shadow-md">
                     <div className="mb-4">
@@ -128,7 +178,7 @@ const Home = () => {
                     </p>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-500">
-                        {category.serviceCount || 0} freelancers
+                        {category.freelancerCount || 0} freelancers
                       </span>
                       <span className="text-purple-800 text-sm font-medium flex items-center">
                         Explorar
@@ -147,7 +197,7 @@ const Home = () => {
                       </span>
                     </div>
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
           )}

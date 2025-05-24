@@ -13,11 +13,11 @@ const fetchFromApi = async (endpoint, options = {}) => {
 };
 
 export async function getAllMessages() {
-  return fetchFromApi("/message");
+  return fetchFromApi("/messages");
 }
 
 export async function getMessageById(id) {
-  return fetchFromApi(`/message/${id}`);
+  return fetchFromApi(`/messages/${id}`);
 }
 
 export async function getMessagesByUser(userId) {
@@ -25,7 +25,7 @@ export async function getMessagesByUser(userId) {
 }
 
 export async function sendMessage(data) {
-  const res = await fetch(`${BASE_URL}/message/new`, {
+  const res = await fetch(`${BASE_URL}/messages/new`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -38,7 +38,7 @@ export async function sendMessage(data) {
 }
 
 export async function deleteMessage(id) {
-  const res = await fetch(`${BASE_URL}/message/${id}`, {
+  const res = await fetch(`${BASE_URL}/messages/${id}`, {
     method: "DELETE",
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,

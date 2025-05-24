@@ -1,34 +1,40 @@
 const BASE_URL = import.meta.env.VITE_API_URL;
 
-export async function getUserChats() {
-  const res = await fetch(`${BASE_URL}/chats`, {
-    headers: {
-      "Authorization": `Bearer ${localStorage.getItem("token")}`
-    }
-  });
-  if (!res.ok) throw new Error("Error al obtener los chats");
-  return await res.json();
-}
+export const getUserChats = async () => {
+  try {
+    const response = await fetch(`${BASE_URL}/chats`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
 
-export async function getChatMessages(chatId) {
-  const res = await fetch(`${BASE_URL}/chats/${chatId}/messages`, {
-    headers: {
-      "Authorization": `Bearer ${localStorage.getItem("token")}`
+    if (!response.ok) {
+      throw new Error(`Error en la solicitud: ${response.status}`);
     }
-  });
-  if (!res.ok) throw new Error("Error al obtener los mensajes del chat");
-  return await res.json();
-}
 
-export async function sendMessageToChat(chatId, content) {
-  const res = await fetch(`${BASE_URL}/chats/${chatId}/messages`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${localStorage.getItem("token")}`
-    },
-    body: JSON.stringify({ content })
-  });
-  if (!res.ok) throw new Error("Error al enviar el mensaje");
-  return await res.json();
-}
+    return await response.json();
+  } catch (error) {
+    throw new Error("Error al obtener los chats", error);
+  }
+};
+
+// Nueva función para obtener un chat específico por su ID
+export const getChatById = async (chatId) => {
+  try {
+    const response = await fetch(`${BASE_URL}/chats/${chatId}`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error en la solicitud: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    throw new Error("Error al obtener el chat", error);
+  }
+};

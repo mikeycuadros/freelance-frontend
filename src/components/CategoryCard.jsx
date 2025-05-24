@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { getAllCategories, getCategoryById } from "../services/category";
 
-const CategoryCard = ({ id, showDetails = false }) => {
+const CategoryCard = ({ id }) => {
   const [category, setCategory] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -20,7 +20,11 @@ const CategoryCard = ({ id, showDetails = false }) => {
           data = await getAllCategories();
           if (Array.isArray(data) && data.length > 0) {
             setCategory(data[0]);
-          } else if (data.categories && Array.isArray(data.categories) && data.categories.length > 0) {
+          } else if (
+            data.categories &&
+            Array.isArray(data.categories) &&
+            data.categories.length > 0
+          ) {
             setCategory(data.categories[0]);
           } else {
             setError("No se encontraron categorías disponibles");
@@ -63,24 +67,22 @@ const CategoryCard = ({ id, showDetails = false }) => {
   }
 
   // Asegúrate de que todas las propiedades sean strings antes de renderizar
-  const name = typeof category.name === 'string' ? category.name : 
-               (category.name && typeof category.name === 'object' ? JSON.stringify(category.name) : 'Sin nombre');
-  
-  const description = typeof category.description === 'string' ? category.description : '';
+  const name =
+    typeof category.name === "string"
+      ? category.name
+      : category.name && typeof category.name === "object"
+      ? JSON.stringify(category.name)
+      : "Sin nombre";
+
+  const description =
+    typeof category.description === "string" ? category.description : "";
 
   return (
     <div className="border rounded p-4 shadow hover:shadow-lg transition text-center">
-      {category.icon && (
-        <div className="text-3xl mb-2">{category.icon}</div>
-      )}
+      {category.icon && <div className="text-3xl mb-2">{category.icon}</div>}
       <h3 className="text-lg font-semibold">{name}</h3>
       {description && (
         <p className="text-sm text-gray-600 mt-1">{description}</p>
-      )}
-      {showDetails && category.serviceCount && (
-        <div className="mt-2 bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full inline-block">
-          {category.serviceCount} servicios
-        </div>
       )}
     </div>
   );

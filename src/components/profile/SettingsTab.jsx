@@ -26,6 +26,7 @@ const SettingsTab = ({
               value={formData.currentPassword}
               onChange={handleChange}
               required
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
           <div className="mb-3">
@@ -38,6 +39,7 @@ const SettingsTab = ({
               value={formData.newPassword}
               onChange={handleChange}
               required
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
           <div className="mb-4">
@@ -50,39 +52,11 @@ const SettingsTab = ({
               value={formData.confirmPassword}
               onChange={handleChange}
               required
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
           <Button type="submit">Actualizar contraseña</Button>
         </form>
-      </div>
-
-      <div className="border-t pt-6 mb-6">
-        <h3 className="text-lg font-medium mb-3">Tipo de cuenta</h3>
-        <p className="text-gray-600 mb-4">
-          Cambia entre cuenta de cliente y freelancer según tus necesidades
-        </p>
-        <div className="flex items-center space-x-4">
-          <span className="text-gray-700">Tipo actual: {user?.roles?.includes('ROLE_FREELANCER') ? 'Freelancer' : 'Cliente'}</span>
-          <Button 
-            onClick={async () => {
-              try {
-                // Aquí deberías llamar a la función que cambia el rol del usuario
-                // Por ejemplo: await updateUserRole()
-                const newRole = user?.roles?.includes('ROLE_FREELANCER') ? 'ROLE_CLIENT' : 'ROLE_FREELANCER';
-                // Simulación de la respuesta exitosa
-                setMessage({
-                  text: `Tipo de cuenta actualizado a ${newRole === 'ROLE_FREELANCER' ? 'Freelancer' : 'Cliente'}`,
-                  type: "success",
-                });
-                setTimeout(() => setMessage({ text: "", type: "" }), 3000);
-              } catch (error) {
-                setMessage({ text: "Error al cambiar el tipo de cuenta", type: "error" });
-              }
-            }}
-          >
-            Cambiar a {user?.roles?.includes('ROLE_FREELANCER') ? 'Cliente' : 'Freelancer'}
-          </Button>
-        </div>
       </div>
 
       <div className="border-t pt-6 mt-6">

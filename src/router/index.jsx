@@ -9,7 +9,9 @@ import Register from "../pages/Register";
 import Categories from "../pages/Categories";
 import Freelancer from "../pages/Freelancer";
 import FreelancerDetail from "../pages/FreelancerDetail";
-import Messages from "../pages/Messages";
+import Chats from "../pages/Chats";
+import ChatDetail from "../pages/ChatDetail";
+import CategoryDetail from "../pages/CategoryDetail";
 
 export const router = createBrowserRouter([
   {
@@ -34,12 +36,16 @@ export const router = createBrowserRouter([
         element: <Freelancer />,
       },
       {
+        path: "freelancer/:id",
+        element: <FreelancerDetail />,
+      },
+      {
         path: "categories",
         element: <Categories />,
       },
       {
-        path: "freelancer/:id",
-        element: <FreelancerDetail />,
+        path: "categories/:id",
+        element: <CategoryDetail />,
       },
       {
         path: "how-it-works",
@@ -50,8 +56,12 @@ export const router = createBrowserRouter([
         element: <Profile />,
       },
       {
-        path: "messages",
-        element: <Messages />,
+        path: "chats",
+        element: <Chats />,
+      },
+      {
+        path: "chat/:id",
+        element: <ChatDetail />,
       },
     ],
   },

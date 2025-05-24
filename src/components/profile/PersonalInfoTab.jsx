@@ -1,73 +1,24 @@
-import React, { useEffect } from "react";
-import { Button } from "../Button";
-import { useAuth } from "../../context/AuthContext";
+import React from "react";
 
-const PersonalInfoTab = ({
-  isEditing,
-  setIsEditing,
-  formData,
-  handleChange,
-  handleUpdateProfile,
-}) => {
-  const { user } = useAuth();
-  useEffect(() => {
-    if (user) {
-      setFormData({
-        ...formData,
-        nombre: user.username,
-        correo: user.email,
-      });
-    }
-  }, [user]);
-
+const PersonalInfoTab = ({ user }) => {
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">Información Personal</h2>
-        <Button variant="outline" onClick={() => setIsEditing(!isEditing)}>
-          {isEditing ? "Cancelar" : "Editar"}
-        </Button>
+      <h2 className="text-xl font-semibold mb-4">Información Personal</h2>
+      <div>
+        <p className="text-gray-700 mb-2">
+          <span className="font-medium">Nombre:</span> {user?.username || user?.name || "Usuario"}
+        </p>
+        <p className="text-gray-700">
+          <span className="font-medium">Correo:</span> {user?.email || "usuario@example.com"}
+        </p>
       </div>
-
-      {isEditing ? (
-        <form onSubmit={handleUpdateProfile}>
-          <div className="mb-4">
-            <label className="block text-gray-700 mb-2">Nombre</label>
-            <input
-              type="text"
-              name="nombre"
-              value={formData.nombre}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 mb-2">
-              Correo electrónico
-            </label>
-            <input
-              type="email"
-              name="correo"
-              value={formData.correo}
-              onChange={handleChange}
-              disabled
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              El correo electrónico no se puede cambiar
-            </p>
-          </div>
-          <Button type="submit">Guardar cambios</Button>
-        </form>
-      ) : (
-        <div>
-          <p className="text-gray-700 mb-2">
-            <span className="font-medium">Nombre:</span> {formData.nombre}
-          </p>
-          <p className="text-gray-700">
-            <span className="font-medium">Correo:</span> {formData.correo}
-          </p>
-        </div>
-      )}
+      
+      {/* Puedes agregar más información de solo lectura aquí */}
+      <div className="mt-4 p-4 bg-gray-50 rounded-md">
+        <p className="text-sm text-gray-500">
+          Esta información no puede ser modificada. Si necesitas cambiar tus datos, por favor contacta al soporte.
+        </p>
+      </div>
     </div>
   );
 };

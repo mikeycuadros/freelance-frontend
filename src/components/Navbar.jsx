@@ -31,8 +31,8 @@ const Navbar = () => {
             Categorias
           </Link>
           {isAuthenticated && (
-            <Link to="/messages" className="text-gray-600 hover:text-purple-900 flex items-center">
-              Mensajes
+            <Link to="/chats" className="text-gray-600 hover:text-purple-900 flex items-center">
+              Chats
             </Link>
           )}
         </div>
@@ -73,14 +73,6 @@ const Navbar = () => {
             >
               Mi perfil
             </Link>
-            {isAuthenticated && (
-              <Link to="/messages" className="text-gray-700 hover:text-purple-900 font-medium md:hidden">
-                Mensajes
-                <span className="ml-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 inline-flex items-center justify-center">
-                  3
-                </span>
-              </Link>
-            )}
             {/* <Link to="/publish">
               <Button className="bg-purple-800 hover:bg-purple-900 text-white px-4 py-2 rounded-md">
                 Publicar Servicio

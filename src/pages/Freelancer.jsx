@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Button } from "../components/Button";
 import Pagination from "../components/Pagination";
 import { Link, useNavigate } from "react-router-dom";
-import { getFreelancersWithRole } from "../services/freelancer";
+import { getFreelancersWithRole } from "../services/user";
+import { getAllCategories } from "../services/category";
 
 const Freelancer = () => {
   const [freelancers, setFreelancers] = useState([]);
@@ -18,22 +19,47 @@ const Freelancer = () => {
   const [priceRange, setPriceRange] = useState(150);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  const categorias = [
-    "Desarrollo Web",
-    "Diseño",
-    "Marketing",
-    "Redacción",
-    "Traducción",
-    "Desarrollo Móvil",
-  ];
-
+  const [categorias, setCategorias] = useState([]);
+  const [loadingCategorias, setLoadingCategorias] = useState(true);
+  const [showCategoriesList, setShowCategoriesList] = useState(false);
+  const [categoriasCompletas, setCategoriasCompletas] = useState([]);
+  
   const nivelesExperiencia = [
     "Cualquier Experiencia",
     "Principiante",
     "Intermedio",
     "Experto",
   ];
+
+  // Cargar categorías desde la API
+  useEffect(() => {
+    const fetchCategorias = async () => {
+      setLoadingCategorias(true);
+      try {
+        const data = await getAllCategories();
+        // Guardar las categorías completas
+        setCategoriasCompletas(data);
+        // Extraer los nombres de las categorías
+        const nombresCategorias = data.map(categoria => categoria.name);
+        setCategorias(nombresCategorias);
+      } catch (err) {
+        console.error("Error al cargar categorías:", err);
+        // Usar categorías por defecto en caso de error
+        setCategorias([
+          "Desarrollo Web",
+          "Diseño",
+          "Marketing",
+          "Redacción",
+          "Traducción",
+          "Desarrollo Móvil",
+        ]);
+      } finally {
+        setLoadingCategorias(false);
+      }
+    };
+
+    fetchCategorias();
+  }, []);
 
   // Cargar freelancers desde la API
   useEffect(() => {
@@ -75,15 +101,38 @@ const Freelancer = () => {
     let filtered = [...allFreelancers];
 
     if (categoryFilter) {
-      filtered = filtered.filter(
-        (f) =>
-          (f.skills &&
-            f.skills.some((skill) =>
-              skill.toLowerCase().includes(categoryFilter.toLowerCase())
-            )) ||
-          (f.title &&
-            f.title.toLowerCase().includes(categoryFilter.toLowerCase()))
+      // Buscar la categoría seleccionada en las categorías completas
+      const categoriaEncontrada = categoriasCompletas.find(
+        cat => cat.name.toLowerCase() === categoryFilter.toLowerCase()
       );
+      
+      if (categoriaEncontrada) {
+        // Obtener las habilidades de la categoría
+        const categorySkills = categoriaEncontrada.skills || [];
+        
+        // Filtrar freelancers que coinciden con esta categoría
+        filtered = filtered.filter(freelancer => {
+          const freelancerSkills = freelancer.skills || [];
+          
+          // Verificar si hay al menos una habilidad que coincida
+          return freelancerSkills.some(skill => 
+            categorySkills.some(categorySkill => 
+              skill.toLowerCase() === categorySkill.toLowerCase()
+            )
+          );
+        });
+      } else {
+        // Si no se encuentra la categoría, usar el filtro anterior
+        filtered = filtered.filter(
+          (f) =>
+            (f.skills &&
+              f.skills.some((skill) =>
+                skill.toLowerCase().includes(categoryFilter.toLowerCase())
+              )) ||
+            (f.title &&
+              f.title.toLowerCase().includes(categoryFilter.toLowerCase()))
+        );
+      }
     }
 
     if (searchTerm.trim() !== "") {
@@ -109,10 +158,14 @@ const Freelancer = () => {
       filtered = filtered.filter((f) => {
         // Calcular rating promedio si hay reseñas disponibles
         const reviews = f.freelancer?.reviews || [];
-        const avgRating = reviews.length > 0 
-          ? reviews.reduce((sum, review) => sum + parseFloat(review.rating), 0) / reviews.length
-          : 4.5; // Valor por defecto si no hay reseñas
-        
+        const avgRating =
+          reviews.length > 0
+            ? reviews.reduce(
+                (sum, review) => sum + parseFloat(review.rating),
+                0
+              ) / reviews.length
+            : 4.5; // Valor por defecto si no hay reseñas
+
         if (experienceLevel === "Experto") {
           return avgRating >= 4.8;
         } else if (experienceLevel === "Intermedio") {
@@ -140,12 +193,8 @@ const Freelancer = () => {
     experienceLevel,
     priceRange,
     allFreelancers,
+    categoriasCompletas,
   ]);
-
-  const handleCategoryClick = (category) => {
-    setCategoryFilter(category);
-    setCurrentPage(1);
-  };
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -221,20 +270,55 @@ const Freelancer = () => {
               {/* Filtro por categoría */}
               <div className="mb-6">
                 <h3 className="font-medium mb-2">Categoría</h3>
-                <select
-                  className="w-full p-2 border border-gray-300 rounded-md"
-                  onChange={(e) => {
-                    setCategoryFilter(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                >
-                  <option value="">Todas las Categorías</option>
-                  {categorias.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <div 
+                    className="w-full p-2 border border-gray-300 rounded-md cursor-pointer flex justify-between items-center"
+                    onClick={() => setShowCategoriesList(!showCategoriesList)}
+                  >
+                    <span>{categoryFilter || "Todas las Categorías"}</span>
+                    <svg 
+                      className={`w-4 h-4 transition-transform ${showCategoriesList ? 'rotate-180' : ''}`}
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24" 
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                  
+                  {showCategoriesList && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-40 overflow-y-auto">
+                      <div 
+                        className="p-2 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => {
+                          setCategoryFilter("");
+                          setShowCategoriesList(false);
+                          setCurrentPage(1);
+                        }}
+                      >
+                        Todas las Categorías
+                      </div>
+                      {loadingCategorias ? (
+                        <div className="p-2 text-gray-500">Cargando categorías...</div>
+                      ) : (
+                        categorias.map((cat) => (
+                          <div 
+                            key={cat} 
+                            className="p-2 hover:bg-gray-100 cursor-pointer"
+                            onClick={() => {
+                              setCategoryFilter(cat);
+                              setShowCategoriesList(false);
+                              setCurrentPage(1);
+                            }}
+                          >
+                            {cat}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Filtro por nivel de experiencia */}
@@ -348,11 +432,11 @@ const Freelancer = () => {
                                 {freelancer.username}
                               </h3>
                               <p className="text-gray-600">
-                                {freelancer.freelancer?.title || "Freelancer"}
+                                {freelancer.freelancer?.title}
                               </p>
                             </div>
                             <p className="text-xl font-bold">
-                              ${freelancer.freelancer?.hourlyRate || 30}/hr
+                              ${freelancer.freelancer?.hourlyRate}/hr
                             </p>
                           </div>
 
@@ -369,30 +453,31 @@ const Freelancer = () => {
                               {freelancer.freelancer?.reviews?.length > 0
                                 ? (
                                     freelancer.freelancer.reviews.reduce(
-                                      (sum, review) => sum + parseFloat(review.rating),
+                                      (sum, review) =>
+                                        sum + parseFloat(review.rating),
                                       0
                                     ) / freelancer.freelancer.reviews.length
                                   ).toFixed(1)
-                                : "4.5"}
+                                : "0.0"}
                             </span>
                             <span className="text-gray-500 mr-2">
-                              •{" "}
-                              {freelancer.freelancer?.reviews?.length || 
-                                Math.floor(Math.random() * 100) + 10}{" "}
+                              • {freelancer.freelancer?.reviews?.length || 0}{" "}
                               reseñas
                             </span>
                           </div>
                           <div className="flex flex-wrap gap-2 mt-3">
                             {freelancer.freelancer?.skills &&
                             freelancer.freelancer.skills.length > 0 ? (
-                              freelancer.freelancer.skills.map((skill, index) => (
-                                <span
-                                  key={index}
-                                  className="px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-md"
-                                >
-                                  {skill}
-                                </span>
-                              ))
+                              freelancer.freelancer.skills.map(
+                                (skill, index) => (
+                                  <span
+                                    key={index}
+                                    className="px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-md"
+                                  >
+                                    {skill}
+                                  </span>
+                                )
+                              )
                             ) : (
                               <span className="px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-md">
                                 Sin habilidades especificadas
