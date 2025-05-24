@@ -4,6 +4,7 @@ import { Button } from "../components/Button";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { getFreelancerById } from "../services/user";
+import { findOrCreateChat } from "../services/chat";
 
 const FreelancerDetail = () => {
   const { id } = useParams();
@@ -14,12 +15,20 @@ const FreelancerDetail = () => {
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("about");
 
-  const handleContactClick = () => {
+  const handleContactClick = async () => {
     if (!isAuthenticated) {
       navigate("/login", { state: { from: `/freelancer/${id}` } });
     } else {
-      // Lógica para contactar al freelancer
-      console.log("Contactando al freelancer:", id);
+      try {
+        // Verificar si ya existe un chat o crear uno nuevo
+        const chat = await findOrCreateChat(user.id, parseInt(id));
+        
+        // Redirigir al chat (corregido sin la 's')
+        navigate(`/chat/${chat.id}`);
+      } catch (error) {
+        console.error("Error al acceder al chat:", error);
+        // Aquí podrías mostrar un mensaje de error al usuario
+      }
     }
   };
 

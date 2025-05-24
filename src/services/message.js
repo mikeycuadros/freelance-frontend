@@ -25,15 +25,27 @@ export async function getMessagesByUser(userId) {
 }
 
 export async function sendMessage(data) {
-  const res = await fetch(`${BASE_URL}/messages/new`, {
+  // Extraer los IDs del objeto data
+  const { chatId, senderId, receiverId, ...messageData } = data;
+  
+  // Construir la URL con los IDs como parámetros de consulta
+  const url = `${BASE_URL}/messages/new?chatId=${chatId}&senderId=${senderId}&receiverId=${receiverId}`;
+  
+  const res = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
-    body: JSON.stringify(data),
+    body: JSON.stringify(messageData),
   });
-  if (!res.ok) throw new Error("Error al enviar el mensaje");
+  
+  if (!res.ok) {
+    const errorData = await res.json();
+    console.error("Error detallado:", errorData);
+    throw new Error(errorData.error || "Error al enviar el mensaje");
+  }
+  
   return await res.json();
 }
 

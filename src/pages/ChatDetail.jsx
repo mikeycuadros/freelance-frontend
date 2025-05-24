@@ -41,12 +41,13 @@ const ChatDetail = () => {
     if (!newMessage.trim()) return;
 
     try {
+      // Crear un objeto con solo el contenido y la fecha
       const messageData = {
         content: newMessage,
-        chat: `/chats/${id}`, // Corregido: eliminado el prefijo /api
-        sender: `/users/${user.id}`, // Corregido: eliminado el prefijo /api
-        receiver: `/users/${otherUser.id}`, // Añadido el campo receiver
-        date: new Date().toISOString() // Añadido el campo date requerido
+        date: new Date().toISOString(),
+        chatId: id,          // Enviar IDs en lugar de IRIs
+        senderId: user.id,    // Enviar IDs en lugar de IRIs
+        receiverId: otherUser.id  // Enviar IDs en lugar de IRIs
       };
 
       await sendMessage(messageData);
